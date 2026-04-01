@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { getSocket } from "../socket";
+import { getSocket, disconnectSocket } from "../socket";
 
 interface UserInfo {
   _id: string;
@@ -13,13 +13,16 @@ interface UserInfo {
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState<UserInfo[]>([]);
+  const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set());
   const [menuOpen, setMenuOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Establish socket connection on mount
+  // Online/offline status
   useEffect(() => {
-    getSocket();
+    const socket = getSocket();
+    socket.on("onlineUsers", (ids: string[]) => setOnlineUserIds(new Set(ids)));
+    return () => { socket.off("onlineUsers"); };
   }, []);
 
   // Fetch users
@@ -45,6 +48,7 @@ const Sidebar: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    disconnectSocket();
     navigate("/login");
   };
 
@@ -123,7 +127,15 @@ const Sidebar: React.FC = () => {
               });
             }}
           >
-            <div className="chat-item-avatar">{user.firstName.charAt(0)}</div>
+            <div className="chat-item-avatar" style={{ position: 'relative' }}>
+              {user.firstName.charAt(0)}
+              <span style={{
+                position: 'absolute', bottom: 0, right: 0,
+                width: 10, height: 10, borderRadius: '50%',
+                background: onlineUserIds.has(user._id) ? '#22c55e' : '#9ca3af',
+                border: '2px solid white',
+              }} />
+            </div>
             <div className="chat-item-info">
               <div className="chat-item-top">
                 <span className="chat-item-name">

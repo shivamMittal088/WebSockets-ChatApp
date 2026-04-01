@@ -104,7 +104,6 @@ const Chat: React.FC = () => {
         <div className="chat-header-avatar">{initial}</div>
         <div className="chat-header-info">
           <span className="chat-header-name">{name}</span>
-          <span className="chat-header-status">online</span>
         </div>
         <div className="chat-header-actions">
           <button>

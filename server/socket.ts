@@ -18,8 +18,18 @@ export function setupSocket(server: http.Server) {
     },
   });
 
+  const onlineUsers = new Map<string, Set<string>>(); // userId → Set of socketIds
+
   io.on("connection", (socket: Socket) => {
     console.log("User connected:", socket.id);
+
+    socket.on("register", (userId: string) => {
+      if (!onlineUsers.has(userId)) {
+        onlineUsers.set(userId, new Set());
+      }
+      onlineUsers.get(userId)!.add(socket.id);
+      io.emit("onlineUsers", Array.from(onlineUsers.keys()));
+    });
 
     // Handle Events .
 
@@ -113,6 +123,16 @@ export function setupSocket(server: http.Server) {
 
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
+      for (const [userId, sids] of onlineUsers) {
+        if (sids.has(socket.id)) {
+          sids.delete(socket.id);
+          if (sids.size === 0) {
+            onlineUsers.delete(userId);
+          }
+          break;
+        }
+      }
+      io.emit("onlineUsers", Array.from(onlineUsers.keys()));
     });
   });
 

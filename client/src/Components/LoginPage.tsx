@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { connectSocket } from '../socket'
 import '../styles/LoginPage.css'
 
 interface FieldErrors {
@@ -106,6 +107,7 @@ const LoginPage: React.FC = () => {
 
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
+      connectSocket(data.user._id)
       navigate('/chat')
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response) {

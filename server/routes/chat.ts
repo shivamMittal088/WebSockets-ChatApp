@@ -23,8 +23,7 @@ chatRouter.get("/users", authMiddleware, async (req: AuthRequest, res: Response)
     }
 
     const users = await User.find(query)
-      .select("_id firstName lastName emailId photoURL statusMessage")
-      .limit(20);
+      .select("_id firstName lastName emailId photoURL statusMessage");
 
     res.json(users);
   } catch (error) {
